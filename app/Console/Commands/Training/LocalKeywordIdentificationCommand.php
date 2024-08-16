@@ -4,7 +4,7 @@ namespace App\Console\Commands\Training;
 
 use App\Models\KeywordIndex;
 use Illuminate\Console\Command;
-use Illuminate\Support\Facades\File;
+use Illuminate\Support\Facades\Storage;
 
 class LocalKeywordIdentificationCommand extends Command
 {
@@ -15,9 +15,9 @@ class LocalKeywordIdentificationCommand extends Command
     public function handle(): void
     {
         $training = [];
-        $systemPrompt = 'You are an expert in language and are able to identify if a supplied line of text contains a physical location (country, county, city, state, town etc..)\n\nYou will be supplied a list of keywords which have been separated by a comma, you must look carefully through each keyword and determine if that keyword contains a physical geographic location.\n\nYou must review all supplied keywords for the presence of a location. You must return all keywords that contain a location. Only ever return keywords that have been supplied. Never create your own keywords as part of the response.\n\nFor example;\nInput: Plumber Rugby, Builder in Leicester, Leicester Builders, Plastering, Window Fitters, Drain Unblocking, Rugby Boots, Web Design India\nResponse: ["Plumber Rugby", "Builder in Leicester", "Leicester Builders", "Web Design India"]\n\nYour response must be a JSON array in the format [{keyword}, {keyword}]';
+        $systemPrompt = 'You are a named entity recognition (NER) expert specializing in geographic locations. Your task is to identify whether a supplied line of text contains a reference to a specific physical location, such as a country (UK, US, United Kingdom), county (Leicestershire, London), city (Coventry, Rugby), state (New York, NJ, Alabama), town (Birstall, Lutterworth), etc.\n\nYou will be given a list of keywords separated by commas. Carefully examine each keyword and determine if it explicitly references a specific geographic location. \n\nExample:\n• Input: Plumber Rugby, Builder in Leicester, Leicester Builders, Plastering, Window Fitters, Drain Unblocking, Rugby Boots, Web Design India, Local businesses, Local SEO campaigns, local market optimization\n• Response: [“Plumber Rugby”, “Builder in Leicester”, “Leicester Builders”, “Web Design India”]\n\nImportant Notes:\n1. Exclude general or vague terms that do not clearly reference a specific physical location, like \"local\", \"near me\", \"nearby\", \"neighbourhood\". \n2. Only return keywords that explicitly mention a physical location.\n\nReturn the identified keywords as a JSON array. Do not create, modify, or infer keywords; only return the keywords as supplied.';
 
-        $keywords = KeywordIndex::where('location_reviewed', 1)->cursor();
+        $keywords = KeywordIndex::where('location_reviewed', 1)->inRandomOrder()->cursor();
 
         foreach ($keywords->chunk(100) as $chunk) {
             $data = [];
@@ -50,13 +50,13 @@ class LocalKeywordIdentificationCommand extends Command
             $training[] = $data;
         }
 
-        $filePath = storage_path('training/local/local_keyword_identification.jsonl');
-
-        File::put($filePath, '');
+        $file = '';
 
         foreach ($training as $trainingItem) {
             $jsonLine = json_encode($trainingItem);
-            File::append($filePath, $jsonLine . "\n");
+            $file .= $jsonLine . "\n";
         }
+
+        Storage::disk('s3Training')->put('local/location_identifier_' . date('Y-m-d-H-i-s') . '.jsonl', $file);
     }
 }

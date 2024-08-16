@@ -12,16 +12,6 @@ class Websites extends Model
 {
     use SoftDeletes;
 
-    // process_stage:
-    // 0 = Pending
-    // 1 = Review Current Ranking Keywords
-    // 2 = Convert Website to Vector Database
-    // 3 = Query Keywords in Vector Database
-    // 4 = Select Keywords from Embedding Results
-    // 5 = Refine Keywords per page
-    // 5 = Refine Keywords for new pages
-    // 6 = Finished
-
     protected $fillable = [
         'website_url',
         'crawl_location',
