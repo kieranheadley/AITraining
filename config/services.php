@@ -35,4 +35,18 @@ return [
         ],
     ],
 
+    'serp' => [
+        'key' => env('HIKE_SERP_KEY'),
+        'url' => env('HIKE_SERP_URL'),
+    ],
+
+    'openai' => [
+        'key' => env('OPENAI_KEY'),
+    ],
+
+    'pinecone' => [
+        'api_key' => env('PINECONE_API_KEY'),
+        'index_host' => env('PINECONE_INDEX_HOST'),
+    ],
+
 ];

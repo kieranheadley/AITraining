@@ -1,0 +1,28 @@
+<?php
+
+namespace App\Models;
+
+use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\SoftDeletes;
+
+class Keywords extends Model
+{
+    use SoftDeletes;
+
+    protected $fillable = [
+        'website_id',
+        'keyword',
+        'assigned_page',
+        'embedding_results',
+        'embedding_reason',
+        'selected',
+        'new_page',
+    ];
+
+    protected function casts()
+    {
+        return [
+            'embedding_results' => 'array',
+        ];
+    }
+}
