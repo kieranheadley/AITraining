@@ -14,7 +14,7 @@ class Kernel extends ConsoleKernel
      */
     protected function schedule(Schedule $schedule): void
     {
-        $schedule->command('ProcessStages.php')->everyMinute();
+        $schedule->command('stages:process')->everyMinute();
     }
 
     /**
