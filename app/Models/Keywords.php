@@ -17,6 +17,9 @@ class Keywords extends Model
         'embedding_reason',
         'selected',
         'new_page',
+        'assignment_flagged',
+        'assignment_flag_reason',
+        'assignment_flag_notes',
     ];
 
     protected function casts()

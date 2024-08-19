@@ -6,6 +6,15 @@
     <meta http-equiv="X-UA-Compatible" content="ie=edge">
     <title>@yield('title')</title>
     <script src="https://cdn.tailwindcss.com"></script>
+    <style type="text/css">
+        .modal {
+            display: none;
+        }
+
+        .modal.is-active {
+            display: block;
+        }
+    </style>
 </head>
 <body class="h-full">
     <div class="min-h-full">

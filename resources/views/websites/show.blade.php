@@ -92,13 +92,21 @@
                                             @endforeach
                                         </td>
                                         <td class="relative whitespace-nowrap py-4 pl-3 pr-4 text-right text-sm font-medium sm:pr-6">
-                                            <a href="/keyword/flag/{{ $keyword->id }}" class="inline-flex items-center px-3 py-2 bg-red-600 hover:bg-red-700 text-white text-sm font-medium rounded-md">
-                                                <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="size-4">
-                                                    <path stroke-linecap="round" stroke-linejoin="round" d="M3 3v1.5M3 21v-6m0 0 2.77-.693a9 9 0 0 1 6.208.682l.108.054a9 9 0 0 0 6.086.71l3.114-.732a48.524 48.524 0 0 1-.005-10.499l-3.11.732a9 9 0 0 1-6.085-.711l-.108-.054a9 9 0 0 0-6.208-.682L3 4.5M3 15V4.5" />
-                                                </svg>
-
-                                                <span class="ml-1">Flag</span>
-                                            </a>
+                                            @if($keyword->assignment_flagged)
+                                                <a href="/keyword/unflag/{{ $keyword->id }}" class="inline-flex items-center px-3 py-2 bg-gray-100 hover:bg-gray-200 text-red-600 text-sm font-medium rounded-md">
+                                                    <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="size-4">
+                                                        <path stroke-linecap="round" stroke-linejoin="round" d="M3 3v1.5M3 21v-6m0 0 2.77-.693a9 9 0 0 1 6.208.682l.108.054a9 9 0 0 0 6.086.71l3.114-.732a48.524 48.524 0 0 1-.005-10.499l-3.11.732a9 9 0 0 1-6.085-.711l-.108-.054a9 9 0 0 0-6.208-.682L3 4.5M3 15V4.5" />
+                                                    </svg>
+                                                    <span class="ml-1">Remove Flag</span>
+                                                </a>
+                                            @else
+                                                <a onclick="toggleModal(this)" data-modal="flag-keyword-modal" data-keyword_id="{{ $keyword->id }}" class="inline-flex items-center px-3 py-2 bg-red-600 hover:bg-red-700 text-white text-sm font-medium rounded-md">
+                                                    <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="size-4">
+                                                        <path stroke-linecap="round" stroke-linejoin="round" d="M3 3v1.5M3 21v-6m0 0 2.77-.693a9 9 0 0 1 6.208.682l.108.054a9 9 0 0 0 6.086.71l3.114-.732a48.524 48.524 0 0 1-.005-10.499l-3.11.732a9 9 0 0 1-6.085-.711l-.108-.054a9 9 0 0 0-6.208-.682L3 4.5M3 15V4.5" />
+                                                    </svg>
+                                                    <span class="ml-1">Flag</span>
+                                                </a>
+                                            @endif
                                         </td>
                                     </tr>
                                 @endforeach
@@ -109,4 +117,68 @@
             </div>
         </div>
     </div>
+
+    <div class="hidden overflow-x-hidden overflow-y-auto fixed inset-0 z-50 outline-none focus:outline-none justify-center items-center" id="flag-keyword-modal">
+        <div class="relative w-auto my-6 mx-auto max-w-3xl">
+            <!--content-->
+            <div class="border-0 rounded-lg shadow-lg relative flex flex-col w-full bg-white outline-none focus:outline-none">
+                <!--header-->
+                <div class="flex items-start justify-between p-5 border-b border-solid border-blueGray-200 rounded-t">
+                    <h3 class="text-3xl font-semibold">
+                        Flag Keyword
+                    </h3>
+                    <button class="p-1 ml-auto bg-transparent border-0 text-black opacity-5 float-right text-3xl leading-none font-semibold outline-none focus:outline-none" onclick="toggleModal(this)" data-modal="flag-keyword-modal">
+                        <span class="bg-transparent text-black h-6 w-6 text-2xl block outline-none focus:outline-none">
+                        ×
+                        </span>
+                    </button>
+                </div>
+                <!--body-->
+                <form action="/keyword/flag" method="post">
+                    @csrf
+                    <div class="relative p-6 flex-auto">
+                        <div class="flex flex-wrap mb-6">
+                            <div class="w-full px-3 mb-6 md:mb-0">
+                                <label class="block uppercase tracking-wide text-gray-700 text-xs font-bold mb-2" for="reason">
+                                    Reason
+                                </label>
+                                <select id="reason" name="reason" class="block appearance-none w-full bg-white border border-gray-400 hover:border-gray-500 px-4 py-2 pr-8 rounded shadow leading-tight focus:outline-none focus:shadow-outline">
+                                    <option value="">Incorrect Page - Not in embeddings</option>
+                                    <option value="">Incorrect Page - Correct page in embeddings</option>
+                                    <option value="">Keyword not selected</option>
+                                </select>
+                            </div>
+                            <div class="w-full px-3 mb-6 mt-6 md:mb-0">
+                                <label class="block uppercase tracking-wide text-gray-700 text-xs font-bold mb-2" for="notes">
+                                    Notes
+                                </label>
+                                <textarea id="notes" name="notes" rows="3" class="block w-full rounded-md border-0 py-1.5 px-1.5 text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 placeholder:text-gray-400 focus:ring-2 focus:ring-inset focus:ring-indigo-600 sm:text-sm sm:leading-6"></textarea>
+                            </div>
+                        </div>
+                    </div>
+                    <!--footer-->
+                    <div class="flex items-center justify-end p-6 border-t border-solid border-blueGray-200 rounded-b">
+                        <a href="javascript:void(0)" class="text-red-500 background-transparent font-bold uppercase px-6 py-2 text-sm outline-none focus:outline-none mr-1 mb-1 ease-linear transition-all duration-150" type="button" onclick="toggleModal(this)" data-modal="flag-keyword-modal">
+                            Close
+                        </a>
+                        <input type="hidden" name="keyword" id="keywordHolder" value="">
+                        <button class="bg-emerald-500 text-white active:bg-emerald-600 font-bold uppercase text-sm px-6 py-3 rounded shadow hover:shadow-lg outline-none focus:outline-none mr-1 mb-1 ease-linear transition-all duration-150" type="submit">
+                            Flag Keyword
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+    <div class="hidden opacity-25 fixed inset-0 z-40 bg-black" id="flag-keyword-modal-backdrop"></div>
+    <script type="text/javascript">
+        function toggleModal(element){
+            console.log(element.getAttribute("data-keyword_id"));
+            document.getElementById(element.getAttribute("data-modal")).classList.toggle("hidden");
+            document.getElementById(element.getAttribute("data-modal") + "-backdrop").classList.toggle("hidden");
+            document.getElementById(element.getAttribute("data-modal")).classList.toggle("flex");
+            document.getElementById(element.getAttribute("data-modal") + "-backdrop").classList.toggle("flex");
+            document.getElementById("keywordHolder").value = element.getAttribute("data-keyword_id");
+        }
+    </script>
 @endsection
