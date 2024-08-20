@@ -74,9 +74,9 @@ class OpenAIService
                 ->where('country', 'GB')
                 ->first();
 
-            $difficulty = ($data->difficulty == 999) ? 'Unknown' : $data->difficulty;
+            $difficulty = (!$data || $data->difficulty == 999) ? 'Unknown' : $data->difficulty;
 
-            $string .= $keyword.' (Search Volume: '.$data->search_volume.', Difficulty: '.$difficulty.'), ';
+            $string .= $keyword.' (Search Volume: ' . $data->search_volume ?? 0 . ', Difficulty: '.$difficulty.'), ';
         }
 
         $string .= "\n\nPage URL: ".$page->url."\nPage Title: ".$page->title."\nMeta Description: ".$page->meta_desc."\nHeadings: ".implode(', ', str_replace('\n', '', $page->h1_headings)).', '.implode(', ', str_replace('\n', '', $page->h2_headings));
