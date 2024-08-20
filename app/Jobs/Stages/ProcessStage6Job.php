@@ -50,26 +50,27 @@ class ProcessStage6Job implements ShouldQueue
             ->toArray();
 
         foreach ($pageKeywords as $page => $keywords) {
+            if($keywords && is_array($keywords)) {
+                if (count($keywords) <= 3) {
+                    Keywords::where('website_id', $this->website->id)
+                        ->whereIn('keyword', $keywords)
+                        ->update(['selected' => 1]);
 
-            if (count($keywords) <= 3) {
-                Keywords::where('website_id', $this->website->id)
-                    ->whereIn('keyword', $keywords)
-                    ->update(['selected' => 1]);
+                    unset($pageKeywords[$page]);
+                } else {
+                    $gptKeywords = $openai->selectKeywordForNewPage($keywords);
+                    $gptKeywords = current(json_decode($gptKeywords, true));
 
-                unset($pageKeywords[$page]);
-            } else {
-                $gptKeywords = $openai->selectKeywordForNewPage($keywords);
-                $gptKeywords = current(json_decode($gptKeywords, true));
+                    $keywords = array_diff($keywords, $gptKeywords);
 
-                $keywords = array_diff($keywords, $gptKeywords);
+                    Keywords::where('website_id', $this->website->id)
+                        ->whereIn('keyword', $gptKeywords)
+                        ->update(['selected' => 1]);
 
-                Keywords::where('website_id', $this->website->id)
-                    ->whereIn('keyword', $gptKeywords)
-                    ->update(['selected' => 1]);
-
-                Keywords::where('website_id', $this->website->id)
-                    ->whereIn('keyword', $keywords)
-                    ->update(['selected' => 0]);
+                    Keywords::where('website_id', $this->website->id)
+                        ->whereIn('keyword', $keywords)
+                        ->update(['selected' => 0]);
+                }
             }
         }
 
