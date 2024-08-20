@@ -19,6 +19,7 @@ class ProcessStage6Job implements ShouldQueue
 
     public function __construct(Websites $website)
     {
+        $this->onQueue('long');
         $this->website = $website;
     }
 
