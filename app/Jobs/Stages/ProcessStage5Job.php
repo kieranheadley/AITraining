@@ -48,6 +48,10 @@ class ProcessStage5Job implements ShouldQueue
             } else {
                 $pageCrawl = $crawl->where('url', $page)->first();
 
+                if(!$pageCrawl) {
+                    continue;
+                }
+
                 $gpt = $openai->selectKeywordForExistingPage($keywords, $pageCrawl);
 
                 $gptKeywords = current(json_decode($gpt, true));
