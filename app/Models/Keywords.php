@@ -12,6 +12,7 @@ class Keywords extends Model
     protected $fillable = [
         'website_id',
         'keyword',
+        'hike_assigned_page',
         'assigned_page',
         'embedding_results',
         'embedding_reason',
