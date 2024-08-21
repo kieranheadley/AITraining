@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Models\KeywordIndex;
 use App\Models\Websites;
 use Illuminate\Support\Facades\Redirect;
 
@@ -18,7 +19,11 @@ class WebsiteController extends Controller
     {
         $website = Websites::find($id);
 
-        return view('websites.show', compact('website'));
+        $keywordData = KeywordIndex::whereIn('keyword', $website->keywords->pluck('keyword')->toArray())->get();
+
+        $crawl = collect($website->getCrawledPagesData()->unique('url'));
+
+        return view('websites.show', compact('website', 'keywordData', 'crawl'));
     }
 
     public function processAssignment($id)

@@ -44,6 +44,8 @@
                             <thead class="bg-gray-50">
                             <tr>
                                 <th scope="col" class="py-3.5 pl-4 pr-3 text-left text-sm font-semibold text-gray-900 sm:pl-6 text-center">Keyword</th>
+                                <th scope="col" class="py-3.5 pl-4 pr-3 text-left text-sm font-semibold text-gray-900 sm:pl-6 text-center">Search Volume</th>
+                                <th scope="col" class="py-3.5 pl-4 pr-3 text-left text-sm font-semibold text-gray-900 sm:pl-6 text-center">Difficulty</th>
                                 <th scope="col" class="px-3 py-3.5 text-left text-sm font-semibold text-gray-900 text-center">Assigned Page</th>
                                 <th scope="col" class="px-3 py-3.5 text-left text-sm font-semibold text-gray-900 text-center">New Page</th>
                                 <th scope="col" class="px-3 py-3.5 text-left text-sm font-semibold text-gray-900 text-center">Selected</th>
@@ -57,8 +59,17 @@
                                         <td class="whitespace-nowrap py-4 pl-4 pr-3 text-sm font-medium text-gray-900 sm:pl-6">
                                             {{ $keyword->keyword }}
                                         </td>
+                                        <td class="whitespace-nowrap px-3 py-4 text-sm text-gray-500 text-center">
+                                            {{ $keywordData->where('keyword', $keyword->keyword)->first()->search_volume ?? 0 }}
+                                        </td>
+                                        <td class="whitespace-nowrap px-3 py-4 text-sm text-gray-500 text-center">
+                                            {!! ($keywordData->where('keyword', $keyword->keyword)->first()->difficulty) ? str_replace('999', '<small>-</small>', $keywordData->where('keyword', $keyword->keyword)->first()->difficulty) : 0 !!}
+                                        </td>
                                         <td class="whitespace-nowrap px-3 py-4 text-sm text-gray-500">
-                                            {{ $keyword->assigned_page }}
+                                            <strong>AI:</strong> {{ $keyword->assigned_page }} <br>
+                                            <small>
+                                                Hike:  {{ str_replace(rtrim($website->website_url, '/'), '', $keyword->hike_assigned_page) }}
+                                            </small>
                                         </td>
                                         <td class="whitespace-nowrap px-3 py-4 text-sm text-gray-500 text-center">
                                             @if($keyword->new_page)
@@ -84,7 +95,9 @@
                                         </td>
                                         <td class="whitespace-nowrap px-3 py-4 text-sm text-gray-500">
                                             @foreach($keyword->embedding_results ?? [] as $embedding_result)
-                                                {{ $embedding_result['url'] }}
+                                                <a href="{{ rtrim($website->website_url, '/') }}{{ $embedding_result['url'] }}" target="_blank">
+                                                    {{ $embedding_result['url'] }}
+                                                </a>
                                                 <span class="inline-flex items-center ml-2 px-1 py-1 bg-gray-200 hover:bg-gray-300 rounded-full text-sm font-semibold text-gray-600 text-xs" title="Embedding Score: {{ round($embedding_result['score'],2) }}">
                                                     {{ round($embedding_result['score'],2) }}
                                                 </span>
@@ -110,6 +123,46 @@
                                         </td>
                                     </tr>
                                 @endforeach
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="px-4 sm:px-6 lg:px-8 mt-9">
+        <div class="sm:flex sm:items-center">
+            <div class="sm:flex-auto">
+                <h1 class="text-base font-semibold leading-6 text-gray-900">Website Pages</h1>
+            </div>
+        </div>
+        <div class="mt-2 flow-root">
+            <div class="-mx-4 -my-2 overflow-x-auto sm:-mx-6 lg:-mx-8">
+                <div class="inline-block min-w-full py-2 align-middle sm:px-6 lg:px-8">
+                    <div class="overflow-hidden shadow ring-1 ring-black ring-opacity-5 sm:rounded-lg">
+                        <table class="min-w-full divide-y divide-gray-300">
+                            <thead class="bg-gray-50">
+                            <tr>
+                                <th scope="col" class="py-3.5 pl-4 pr-3 text-left text-sm font-semibold text-gray-900 sm:pl-6 text-center">Page URL</th>
+                                <th scope="col" class="py-3.5 pl-4 pr-3 text-left text-sm font-semibold text-gray-900 sm:pl-6 text-center">Page Title</th>
+                                <th scope="col" class="py-3.5 pl-4 pr-3 text-left text-sm font-semibold text-gray-900 sm:pl-6 text-center">Meta Description</th>
+                            </tr>
+                            </thead>
+                            <tbody class="divide-y divide-gray-200 bg-white">
+                            @foreach($crawl as $page)
+                                <tr>
+                                    <td class="whitespace-nowrap py-4 pl-4 pr-3 text-sm font-medium text-gray-900 sm:pl-6">
+                                        {{ $page->url }}
+                                    </td>
+                                    <td class="whitespace-nowrap px-3 py-4 text-sm text-gray-500">
+                                        {{ $page->title }}
+                                    </td>
+                                    <td class="whitespace-nowrap px-3 py-4 text-sm text-gray-500">
+                                        {{ $page->meta_desc }}
+                                    </td>
+                                </tr>
+                            @endforeach
                             </tbody>
                         </table>
                     </div>
