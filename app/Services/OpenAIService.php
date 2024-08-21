@@ -177,9 +177,10 @@ class OpenAIService
                 ->where('country', 'GB')
                 ->first();
 
-            $difficulty = ($data->difficulty == 999) ? 'Unknown' : $data->difficulty;
+            $difficulty = (!$data || $data->difficulty == 999) ? 'Unknown' : $data->difficulty;
+            $search_volume = (!$data) ? 0 : $data->search_volume;
 
-            $string .= $keyword.' (Search Volume: '.$data->search_volume.', Difficulty: '.$difficulty.'), ';
+            $string .= $keyword.' (Search Volume: '.$search_volume.', Difficulty: '.$difficulty.'), ';
         }
 
         $client = OpenAI::client(config('services.openai.key'));
