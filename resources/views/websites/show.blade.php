@@ -63,7 +63,7 @@
                                             {{ $keywordData->where('keyword', $keyword->keyword)->first()->search_volume ?? 0 }}
                                         </td>
                                         <td class="whitespace-nowrap px-3 py-4 text-sm text-gray-500 text-center">
-                                            {!! ($keywordData->where('keyword', $keyword->keyword)->first()->difficulty) ? str_replace('999', '<small>-</small>', $keywordData->where('keyword', $keyword->keyword)->first()->difficulty) : 0 !!}
+                                            {!! ($keywordData->where('keyword', $keyword->keyword)->first()) ? str_replace('999', '<small>-</small>', $keywordData->where('keyword', $keyword->keyword)->first()->difficulty) : 0 !!}
                                         </td>
                                         <td class="whitespace-nowrap px-3 py-4 text-sm text-gray-500">
                                             <strong>AI:</strong> {{ $keyword->assigned_page }} <br>
