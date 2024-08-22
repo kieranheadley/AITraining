@@ -2,9 +2,9 @@
 
 namespace App\Jobs\Stages;
 
+use App\Models\KeywordIndex;
 use App\Models\Websites;
 use App\Services\OpenAIService;
-use App\Services\PineconeService;
 use Illuminate\Bus\Queueable;
 use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Foundation\Bus\Dispatchable;
@@ -23,31 +23,25 @@ class ProcessStage2Job implements ShouldQueue
         $this->website = $website;
     }
 
-    public function handle(OpenAIService $openai, PineconeService $pinecone): void
+    public function handle(OpenAIService $openai): void
     {
         $this->website->processing = 1;
         $this->website->save();
 
-        $crawl = $this->website->getCrawledPagesData()->unique('url');
+        $keywords = $this->website->keywords->pluck('keyword')->toArray();
 
-        foreach ($crawl->chunk(20) as $chunk) {
-            $vectors = [];
+        $locations = $openai->getLocationInKeyword($keywords);
+        $locations = current(json_decode($locations));
 
-            foreach ($chunk as $page) {
-                $meta = $page->path.' - '.$page->title.' - '.$page->meta_desc;
-                $headings = implode(', ', $page->h1_headings).' - '.implode(', ', $page->h2_headings);
+        KeywordIndex::whereIn('keyword', $locations)
+            ->update(['location_in_keyword' => 1]);
 
-                $vectors[] = [
-                    'id' => str_replace('/', '|', $page->path).'#meta',
-                    'values' => $openai->generateEmbeddings($meta),
-                ];
-                $vectors[] = [
-                    'id' => str_replace('/', '|', $page->path).'#headings',
-                    'values' => $openai->generateEmbeddings($headings),
-                ];
-            }
+        $intents = $openai->getSearchIntent($keywords);
+        $intents = current(json_decode($intents));
 
-            $pinecone->upsertVectors($vectors, $this->website);
+        foreach ($intents as $intent) {
+            KeywordIndex::where('keyword', $intent->keyword)
+                ->update(['search_intent' => $intent->intent]);
         }
 
         $this->website->process_stage = 3;

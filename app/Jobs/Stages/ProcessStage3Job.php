@@ -28,28 +28,26 @@ class ProcessStage3Job implements ShouldQueue
         $this->website->processing = 1;
         $this->website->save();
 
-        $keywords = $this->website->keywords->whereNull('assigned_page');
+        $crawl = $this->website->getCrawledPagesData()->unique('url');
 
-        foreach ($keywords as $keyword) {
-            $searchEmbedding = $openai->generateEmbeddings($keyword->keyword);
-            $results = $pinecone->queryVectors($searchEmbedding, $this->website);
+        foreach ($crawl->chunk(20) as $chunk) {
+            $vectors = [];
 
-            $embeddingResults = $urls = [];
+            foreach ($chunk as $page) {
+                $meta = $page->path.' - '.$page->title.' - '.$page->meta_desc;
+                $headings = implode(', ', $page->h1_headings).' - '.implode(', ', $page->h2_headings);
 
-            if (!isset($results['error'])) {
-                foreach ($results['matches'] as $match) {
-                    $match['id'] = str_replace('|', '/', $match['id']);
-                    $url = explode('#', $match['id'])[0];
-
-                    if (!in_array($url, $urls) && count($urls) < 3) {
-                        $urls[] = $url;
-                        $embeddingResults[] = ['url' => $url, 'score' => $match['score']];
-                    }
-                }
+                $vectors[] = [
+                    'id' => str_replace('/', '|', $page->path).'#meta',
+                    'values' => $openai->generateEmbeddings($meta),
+                ];
+                $vectors[] = [
+                    'id' => str_replace('/', '|', $page->path).'#headings',
+                    'values' => $openai->generateEmbeddings($headings),
+                ];
             }
 
-            $keyword->embedding_results = $embeddingResults;
-            $keyword->save();
+            $pinecone->upsertVectors($vectors, $this->website);
         }
 
         $this->website->process_stage = 4;

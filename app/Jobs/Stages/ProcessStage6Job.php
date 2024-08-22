@@ -14,7 +14,6 @@ use Illuminate\Queue\SerializesModels;
 class ProcessStage6Job implements ShouldQueue
 {
     use Dispatchable, InteractsWithQueue, Queueable, SerializesModels;
-
     private Websites $website;
 
     public function __construct(Websites $website)
@@ -25,23 +24,14 @@ class ProcessStage6Job implements ShouldQueue
 
     public function handle(OpenAIService $openai): void
     {
-        $this->website->processing = 1;
-        $this->website->save();
+//        $this->website->processing = 1;
+//        $this->website->save();
 
-        $noPageKeywords = $this->website->keywords->where('new_page', '=', 1)->whereNull('assigned_page')->pluck('keyword')->toArray();
-
-        $gpt = $openai->groupKeywordsForNewPage($noPageKeywords);
-        $gpt = json_decode($gpt, true);
-
-        foreach ($gpt as $page => $keywords) {
-            Keywords::where('website_id', $this->website->id)
-                ->whereIn('keyword', $keywords)
-                ->update(['assigned_page' => $page, 'selected' => 0]);
-        }
+        $crawl = collect($this->website->getCrawledPagesData()->unique('url'));
 
         $pageKeywords = Keywords::select('assigned_page', 'keyword')
             ->where('website_id', $this->website->id)
-            ->where('new_page', '=', 1)
+            ->where('new_page', '=', 0)
             ->get()
             ->groupBy('assigned_page')
             ->map(function ($group) {
@@ -50,31 +40,36 @@ class ProcessStage6Job implements ShouldQueue
             ->toArray();
 
         foreach ($pageKeywords as $page => $keywords) {
-            if($keywords && is_array($keywords)) {
-                if (count($keywords) <= 3) {
-                    Keywords::where('website_id', $this->website->id)
-                        ->whereIn('keyword', $keywords)
-                        ->update(['selected' => 1]);
+            if (count($keywords) <= 3) {
+                Keywords::where('website_id', $this->website->id)
+                    ->whereIn('keyword', $keywords)
+                    ->update(['selected' => 1]);
 
-                    unset($pageKeywords[$page]);
-                } else {
-                    $gptKeywords = $openai->selectKeywordForNewPage($keywords);
-                    $gptKeywords = current(json_decode($gptKeywords, true));
+                unset($pageKeywords[$page]);
+            } else {
+                $pageCrawl = $crawl->where('path', $page)->first();
 
-                    $keywords = array_diff($keywords, $gptKeywords);
-
-                    Keywords::where('website_id', $this->website->id)
-                        ->whereIn('keyword', $gptKeywords)
-                        ->update(['selected' => 1]);
-
-                    Keywords::where('website_id', $this->website->id)
-                        ->whereIn('keyword', $keywords)
-                        ->update(['selected' => 0]);
+                if(!$pageCrawl) {
+                    continue;
                 }
+
+                $gpt = $openai->selectKeywordForExistingPage($keywords, $pageCrawl);
+
+                $gptKeywords = current(json_decode($gpt, true));
+
+                $keywords = array_diff($keywords, $gptKeywords);
+
+                Keywords::where('website_id', $this->website->id)
+                    ->whereIn('keyword', $gptKeywords)
+                    ->update(['selected' => 1]);
+
+                Keywords::where('website_id', $this->website->id)
+                    ->whereIn('keyword', $keywords)
+                    ->update(['selected' => 0]);
             }
         }
 
-        $this->website->process_stage = 7;
+        $this->website->process_stage = 8;
         $this->website->processing = 0;
         $this->website->save();
     }

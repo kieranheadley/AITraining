@@ -4,6 +4,7 @@ namespace App\Jobs\Stages;
 
 use App\Models\Websites;
 use App\Services\OpenAIService;
+use App\Services\PineconeService;
 use Illuminate\Bus\Queueable;
 use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Foundation\Bus\Dispatchable;
@@ -22,37 +23,33 @@ class ProcessStage4Job implements ShouldQueue
         $this->website = $website;
     }
 
-    public function handle(OpenAIService $openai): void
+    public function handle(OpenAIService $openai, PineconeService $pinecone): void
     {
         $this->website->processing = 1;
         $this->website->save();
 
-        $keywords = $this->website->keywords->whereNull('assigned_page')->whereNotNull('embedding_results');
-
-        $crawl = collect($this->website->getCrawledPagesData()->unique('url'));
+        $keywords = $this->website->keywords->whereNull('assigned_page');
 
         foreach ($keywords as $keyword) {
-            $pages = [];
-            foreach ($keyword->embedding_results as $page) {
-                $pages[] = $crawl->where('path', $page['url'])->first();
-            }
+            $searchEmbedding = $openai->generateEmbeddings($keyword->keyword);
+            $results = $pinecone->queryVectors($searchEmbedding, $this->website);
 
-            $response = $openai->selectPageFromEmbeddings($keyword, $pages);
+            $embeddingResults = $urls = [];
 
-            if ($response !== 'error') {
-                $response = explode(' - ', $response);
+            if (!isset($results['error'])) {
+                foreach ($results['matches'] as $match) {
+                    $match['id'] = str_replace('|', '/', $match['id']);
+                    $url = explode('#', $match['id'])[0];
 
-                if ($response[0] === 'new page') {
-                    $keyword->assigned_page = null;
-                    $keyword->new_page = 1;
-                }else{
-                    $keyword->assigned_page = parse_url($response[0])['path'];
-                    $keyword->new_page = 0;
+                    if (!in_array($url, $urls) && count($urls) < 5) {
+                        $urls[] = $url;
+                        $embeddingResults[] = ['url' => $url, 'score' => $match['score']];
+                    }
                 }
-
-                $keyword->selection_reason = $response[1];
-                $keyword->save();
             }
+
+            $keyword->embedding_results = $embeddingResults;
+            $keyword->save();
         }
 
         $this->website->process_stage = 5;

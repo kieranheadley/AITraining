@@ -43,7 +43,7 @@
                                                     <span class="inline-flex items-center ml-2 px-2 py-1 bg-gray-200 hover:bg-gray-300 rounded-full text-sm font-semibold text-gray-600 text-xs">
                                                         Not Started
                                                     </span>
-                                                @elseif($website->process_stage == 7)
+                                                @elseif($website->process_stage == 8)
                                                     <span class="inline-flex items-center ml-2 px-2 py-1 bg-green-200 hover:bg-green-300 rounded-full text-sm font-semibold text-green-600 text-xs">
                                                         Completed
                                                     </span>

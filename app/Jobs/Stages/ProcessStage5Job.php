@@ -2,7 +2,6 @@
 
 namespace App\Jobs\Stages;
 
-use App\Models\Keywords;
 use App\Models\Websites;
 use App\Services\OpenAIService;
 use Illuminate\Bus\Queueable;
@@ -14,6 +13,7 @@ use Illuminate\Queue\SerializesModels;
 class ProcessStage5Job implements ShouldQueue
 {
     use Dispatchable, InteractsWithQueue, Queueable, SerializesModels;
+
     private Websites $website;
 
     public function __construct(Websites $website)
@@ -27,45 +27,31 @@ class ProcessStage5Job implements ShouldQueue
         $this->website->processing = 1;
         $this->website->save();
 
+        $keywords = $this->website->keywords->whereNull('assigned_page')->whereNotNull('embedding_results');
+
         $crawl = collect($this->website->getCrawledPagesData()->unique('url'));
 
-        $pageKeywords = Keywords::select('assigned_page', 'keyword')
-            ->where('website_id', $this->website->id)
-            ->where('new_page', '=', 0)
-            ->get()
-            ->groupBy('assigned_page')
-            ->map(function ($group) {
-                return $group->pluck('keyword')->toArray();
-            })
-            ->toArray();
+        foreach ($keywords as $keyword) {
+            $pages = [];
+            foreach ($keyword->embedding_results as $page) {
+                $pages[] = $crawl->where('path', $page['url'])->first();
+            }
 
-        foreach ($pageKeywords as $page => $keywords) {
-            if (count($keywords) <= 3) {
-                Keywords::where('website_id', $this->website->id)
-                    ->whereIn('keyword', $keywords)
-                    ->update(['selected' => 1]);
+            $response = $openai->selectPageFromEmbeddings($keyword, $pages);
 
-                unset($pageKeywords[$page]);
-            } else {
-                $pageCrawl = $crawl->where('url', $page)->first();
+            if ($response !== 'error') {
+                $response = explode(' - ', $response);
 
-                if(!$pageCrawl) {
-                    continue;
+                if ($response[0] === 'new page') {
+                    $keyword->assigned_page = null;
+                    $keyword->new_page = 1;
+                }else{
+                    $keyword->assigned_page = parse_url($response[0])['path'];
+                    $keyword->new_page = 0;
                 }
 
-                $gpt = $openai->selectKeywordForExistingPage($keywords, $pageCrawl);
-
-                $gptKeywords = current(json_decode($gpt, true));
-
-                $keywords = array_diff($keywords, $gptKeywords);
-
-                Keywords::where('website_id', $this->website->id)
-                    ->whereIn('keyword', $gptKeywords)
-                    ->update(['selected' => 1]);
-
-                Keywords::where('website_id', $this->website->id)
-                    ->whereIn('keyword', $keywords)
-                    ->update(['selected' => 0]);
+                $keyword->selection_reason = $response[1];
+                $keyword->save();
             }
         }
 

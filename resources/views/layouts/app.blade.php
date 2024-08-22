@@ -24,7 +24,7 @@
                     <div class="flex">
                         <div class="hidden sm:-my-px sm:ml-6 sm:flex sm:space-x-8">
                             <a href="/websites" class="inline-flex items-center border-b-2 border-indigo-500 px-1 pt-1 text-sm font-medium text-gray-900" aria-current="page">Websites</a>
-                            <a href="#" class="inline-flex items-center border-b-2 border-transparent px-1 pt-1 text-sm font-medium text-gray-500 hover:border-gray-300 hover:text-gray-700">Flagged Keywords</a>
+                            <a href="/keywords/flagged" class="inline-flex items-center border-b-2 border-transparent px-1 pt-1 text-sm font-medium text-gray-500 hover:border-gray-300 hover:text-gray-700">Flagged Keywords</a>
                             <a href="/local-keywords" class="inline-flex items-center border-b-2 border-transparent px-1 pt-1 text-sm font-medium text-gray-500 hover:border-gray-300 hover:text-gray-700">Local Keywords</a>
                             <!--<a href="#" class="inline-flex items-center border-b-2 border-transparent px-1 pt-1 text-sm font-medium text-gray-500 hover:border-gray-300 hover:text-gray-700">-</a>-->
                         </div>

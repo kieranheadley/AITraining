@@ -27,7 +27,7 @@ class PineconeService
         ])->post(config('services.pinecone.index_host').'/query', [
             'namespace' => 'ns'.$website->id,
             'vector' => $vector,
-            'topK' => 6,
+            'topK' => 10,
             'includeValues' => false,
         ]);
 

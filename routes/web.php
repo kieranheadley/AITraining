@@ -16,5 +16,6 @@ Route::get('/website/{id}/process', [WebsiteController::class, 'processAssignmen
 Route::get('/local-keywords', [LocalKeywordController::class, 'index']);
 Route::get('/local-keywords/{keyword}/{decision}', [LocalKeywordController::class, 'reviewKeyword']);
 
+Route::get('/keywords/flagged', [KeywordController::class, 'getFlaggedKeywords']);
 Route::post('/keyword/flag', [KeywordController::class, 'flagAssignment']);
 Route::get('/keyword/unflag/{id}', [KeywordController::class, 'unFlagAssignment']);

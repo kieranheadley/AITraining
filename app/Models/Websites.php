@@ -40,13 +40,14 @@ class Websites extends Model
     {
         return match ($this->process_stage) {
             0 => "Pending",
-            1 => "1/6 - Reviewing Current Ranking Keywords",
-            2 => "2/6 - Converting the Website to Vector Database",
-            3 => "3/6 - Querying Keywords against Vector Database",
-            4 => "4/6 - Select Keywords from Embedding Results",
-            5 => "5/6 - Refining Keywords per page",
-            6 => "6/6 - Refining Keywords for new pages",
-            7 => "Completed",
+            1 => "1/7 - Reviewing Current Ranking Keywords",
+            2 => "2/7 - Analyzing Keywords for Intent & Location",
+            3 => "3/7 - Converting the Website to Vector Database",
+            4 => "4/7 - Querying Keywords against Vector Database",
+            5 => "5/7 - Select Keywords from Embedding Results",
+            6 => "6/7 - Refining Keywords per page",
+            7 => "7/7 - Refining Keywords for new pages",
+            8 => "Completed"
         };
     }
 }

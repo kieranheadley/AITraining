@@ -6,7 +6,7 @@
     <div class="px-4 sm:px-6 lg:px-8">
         <div class="sm:flex sm:items-center">
             <div class="sm:flex-auto">
-                <h1 class="text-base font-semibold leading-6 text-gray-900">Website Keyword Assignment</h1>
+                <h1 class="text-base font-semibold leading-6 text-gray-900">Assigned Keywords ({{ $website->keywords->where('new_page', 0)->count() }})</h1>
             </div>
             <div class="mt-4 sm:ml-16 sm:mt-0 sm:flex-none">
                 <span class="inline-flex items-center">
@@ -14,7 +14,7 @@
                         <span class="inline-flex items-center ml-2 px-2 py-1 bg-gray-200 hover:bg-gray-300 rounded-full text-sm font-semibold text-gray-600 text-xs mr-4">
                                 Not Started
                             </span>
-                    @elseif($website->process_stage == 7)
+                    @elseif($website->process_stage == 8)
                         <span class="inline-flex items-center ml-2 px-2 py-1 bg-green-200 hover:bg-green-300 rounded-full text-sm font-semibold text-green-600 text-xs mr-4">
                                 Completed
                             </span>
@@ -30,13 +30,13 @@
                             </span>
                     @endif
 
-                    @if($website->process_stage == 0 || $website->process_stage == 7)
+                    @if($website->process_stage == 0 || $website->process_stage == 8)
                         <a href="/website/{{ $website->id }}/process" class="block rounded-md bg-indigo-600 px-3 py-2 text-center text-sm font-semibold text-white shadow-sm hover:bg-indigo-500 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-indigo-600">Run Assignment</a>
                     @endif
                 </span>
             </div>
         </div>
-        <div class="mt-8 flow-root">
+        <div class="mt-4 flow-root">
             <div class="-mx-4 -my-2 overflow-x-auto sm:-mx-6 lg:-mx-8">
                 <div class="inline-block min-w-full py-2 align-middle sm:px-6 lg:px-8">
                     <div class="overflow-hidden shadow ring-1 ring-black ring-opacity-5 sm:rounded-lg">
@@ -47,14 +47,13 @@
                                 <th scope="col" class="py-3.5 pl-4 pr-3 text-left text-sm font-semibold text-gray-900 sm:pl-6 text-center">Search Volume</th>
                                 <th scope="col" class="py-3.5 pl-4 pr-3 text-left text-sm font-semibold text-gray-900 sm:pl-6 text-center">Difficulty</th>
                                 <th scope="col" class="px-3 py-3.5 text-left text-sm font-semibold text-gray-900 text-center">Assigned Page</th>
-                                <th scope="col" class="px-3 py-3.5 text-left text-sm font-semibold text-gray-900 text-center">New Page</th>
                                 <th scope="col" class="px-3 py-3.5 text-left text-sm font-semibold text-gray-900 text-center">Selected</th>
                                 <th scope="col" class="px-3 py-3.5 text-left text-sm font-semibold text-gray-900 text-center">Embedding Pages</th>
                                 <th scope="col" class="px-3 py-3.5 text-left text-sm font-semibold text-gray-900 text-center"></th>
                             </tr>
                             </thead>
                             <tbody class="divide-y divide-gray-200 bg-white">
-                                @foreach($website->keywords->sortBy('assigned_page') as $keyword)
+                                @foreach($website->keywords->where('new_page', 0)->sortByDesc('selected')->sortBy('assigned_page') as $keyword)
                                     <tr>
                                         <td class="whitespace-nowrap py-4 pl-4 pr-3 text-sm font-medium text-gray-900 sm:pl-6">
                                             {{ $keyword->keyword }}
@@ -72,17 +71,6 @@
                                             </small>
                                         </td>
                                         <td class="whitespace-nowrap px-3 py-4 text-sm text-gray-500 text-center">
-                                            @if($keyword->new_page)
-                                                <span class="inline-flex items-center m-2 px-3 py-1 bg-green-200 hover:bg-green-300 rounded-full text-sm font-semibold text-green-600">
-                                                    Yes
-                                                </span>
-                                            @else
-                                                <span class="inline-flex items-center m-2 px-3 py-1 bg-red-200 hover:bg-red-300 rounded-full text-sm font-semibold text-red-600">
-                                                    No
-                                                </span>
-                                            @endif
-                                        </td>
-                                        <td class="whitespace-nowrap px-3 py-4 text-sm text-gray-500 text-center">
                                             @if($keyword->selected)
                                                 <span class="inline-flex items-center m-2 px-3 py-1 bg-green-200 hover:bg-green-300 rounded-full text-sm font-semibold text-green-600">
                                                     Yes
@@ -94,15 +82,19 @@
                                             @endif
                                         </td>
                                         <td class="whitespace-nowrap px-3 py-4 text-sm text-gray-500">
-                                            @foreach($keyword->embedding_results ?? [] as $embedding_result)
-                                                <a href="{{ rtrim($website->website_url, '/') }}{{ $embedding_result['url'] }}" target="_blank">
-                                                    {{ $embedding_result['url'] }}
-                                                </a>
-                                                <span class="inline-flex items-center ml-2 px-1 py-1 bg-gray-200 hover:bg-gray-300 rounded-full text-sm font-semibold text-gray-600 text-xs" title="Embedding Score: {{ round($embedding_result['score'],2) }}">
-                                                    {{ round($embedding_result['score'],2) }}
-                                                </span>
-                                                <br>
-                                            @endforeach
+                                            @if(stristr($keyword->selection_reason, 'Ranking Position'))
+                                                {{ $keyword->selection_reason }}
+                                            @else
+                                                @foreach($keyword->embedding_results ?? [] as $embedding_result)
+                                                    <a href="{{ rtrim($website->website_url, '/') }}{{ $embedding_result['url'] }}" target="_blank">
+                                                        {{ $embedding_result['url'] }}
+                                                    </a>
+                                                    <span class="inline-flex items-center ml-2 px-1 py-1 bg-gray-200 hover:bg-gray-300 rounded-full text-sm font-semibold text-gray-600 text-xs" title="Embedding Score: {{ round($embedding_result['score'],2) }}">
+                                                        {{ round($embedding_result['score'],2) }}
+                                                    </span>
+                                                    <br>
+                                                @endforeach
+                                            @endif
                                         </td>
                                         <td class="relative whitespace-nowrap py-4 pl-3 pr-4 text-right text-sm font-medium sm:pr-6">
                                             @if($keyword->assignment_flagged)
@@ -123,6 +115,95 @@
                                         </td>
                                     </tr>
                                 @endforeach
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="px-4 sm:px-6 lg:px-8 mt-8">
+        <div class="sm:flex sm:items-center">
+            <div class="sm:flex-auto">
+                <h1 class="text-base font-semibold leading-6 text-gray-900">Keywords Requiring New Page ({{ $website->keywords->where('new_page', 1)->count() }})</h1>
+            </div>
+        </div>
+        <div class="mt-4 flow-root">
+            <div class="-mx-4 -my-2 overflow-x-auto sm:-mx-6 lg:-mx-8">
+                <div class="inline-block min-w-full py-2 align-middle sm:px-6 lg:px-8">
+                    <div class="overflow-hidden shadow ring-1 ring-black ring-opacity-5 sm:rounded-lg">
+                        <table class="min-w-full divide-y divide-gray-300">
+                            <thead class="bg-gray-50">
+                            <tr>
+                                <th scope="col" class="py-3.5 pl-4 pr-3 text-left text-sm font-semibold text-gray-900 sm:pl-6 text-center">Keyword</th>
+                                <th scope="col" class="py-3.5 pl-4 pr-3 text-left text-sm font-semibold text-gray-900 sm:pl-6 text-center">Search Volume</th>
+                                <th scope="col" class="py-3.5 pl-4 pr-3 text-left text-sm font-semibold text-gray-900 sm:pl-6 text-center">Difficulty</th>
+                                <th scope="col" class="px-3 py-3.5 text-left text-sm font-semibold text-gray-900 text-center">Assigned Page</th>
+                                <th scope="col" class="px-3 py-3.5 text-left text-sm font-semibold text-gray-900 text-center">Selected</th>
+                                <th scope="col" class="px-3 py-3.5 text-left text-sm font-semibold text-gray-900 text-center">Embedding Pages</th>
+                                <th scope="col" class="px-3 py-3.5 text-left text-sm font-semibold text-gray-900 text-center"></th>
+                            </tr>
+                            </thead>
+                            <tbody class="divide-y divide-gray-200 bg-white">
+                            @foreach($website->keywords->where('new_page', 1)->sortBy('assigned_page') as $keyword)
+                                <tr>
+                                    <td class="whitespace-nowrap py-4 pl-4 pr-3 text-sm font-medium text-gray-900 sm:pl-6">
+                                        {{ $keyword->keyword }}
+                                    </td>
+                                    <td class="whitespace-nowrap px-3 py-4 text-sm text-gray-500 text-center">
+                                        {{ $keywordData->where('keyword', $keyword->keyword)->first()->search_volume ?? 0 }}
+                                    </td>
+                                    <td class="whitespace-nowrap px-3 py-4 text-sm text-gray-500 text-center">
+                                        {!! ($keywordData->where('keyword', $keyword->keyword)->first()) ? str_replace('999', '<small>-</small>', $keywordData->where('keyword', $keyword->keyword)->first()->difficulty) : 0 !!}
+                                    </td>
+                                    <td class="whitespace-nowrap px-3 py-4 text-sm text-gray-500">
+                                        <strong>AI:</strong> {{ $keyword->assigned_page }} <br>
+                                        <small>
+                                            Hike:  {{ str_replace(rtrim($website->website_url, '/'), '', $keyword->hike_assigned_page) }}
+                                        </small>
+                                    </td>
+                                    <td class="whitespace-nowrap px-3 py-4 text-sm text-gray-500 text-center">
+                                        @if($keyword->selected)
+                                            <span class="inline-flex items-center m-2 px-3 py-1 bg-green-200 hover:bg-green-300 rounded-full text-sm font-semibold text-green-600">
+                                                    Yes
+                                                </span>
+                                        @else
+                                            <span class="inline-flex items-center m-2 px-3 py-1 bg-red-200 hover:bg-red-300 rounded-full text-sm font-semibold text-red-600">
+                                                    No
+                                                </span>
+                                        @endif
+                                    </td>
+                                    <td class="whitespace-nowrap px-3 py-4 text-sm text-gray-500">
+                                        @foreach($keyword->embedding_results ?? [] as $embedding_result)
+                                            <a href="{{ rtrim($website->website_url, '/') }}{{ $embedding_result['url'] }}" target="_blank">
+                                                {{ $embedding_result['url'] }}
+                                            </a>
+                                            <span class="inline-flex items-center ml-2 px-1 py-1 bg-gray-200 hover:bg-gray-300 rounded-full text-sm font-semibold text-gray-600 text-xs" title="Embedding Score: {{ round($embedding_result['score'],2) }}">
+                                                    {{ round($embedding_result['score'],2) }}
+                                                </span>
+                                            <br>
+                                        @endforeach
+                                    </td>
+                                    <td class="relative whitespace-nowrap py-4 pl-3 pr-4 text-right text-sm font-medium sm:pr-6">
+                                        @if($keyword->assignment_flagged)
+                                            <a href="/keyword/unflag/{{ $keyword->id }}" class="inline-flex items-center px-3 py-2 bg-gray-100 hover:bg-gray-200 text-red-600 text-sm font-medium rounded-md">
+                                                <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="size-4">
+                                                    <path stroke-linecap="round" stroke-linejoin="round" d="M3 3v1.5M3 21v-6m0 0 2.77-.693a9 9 0 0 1 6.208.682l.108.054a9 9 0 0 0 6.086.71l3.114-.732a48.524 48.524 0 0 1-.005-10.499l-3.11.732a9 9 0 0 1-6.085-.711l-.108-.054a9 9 0 0 0-6.208-.682L3 4.5M3 15V4.5" />
+                                                </svg>
+                                                <span class="ml-1">Remove Flag</span>
+                                            </a>
+                                        @else
+                                            <a onclick="toggleModal(this)" data-modal="flag-keyword-modal" data-keyword_id="{{ $keyword->id }}" class="inline-flex items-center px-3 py-2 bg-red-600 hover:bg-red-700 text-white text-sm font-medium rounded-md">
+                                                <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="size-4">
+                                                    <path stroke-linecap="round" stroke-linejoin="round" d="M3 3v1.5M3 21v-6m0 0 2.77-.693a9 9 0 0 1 6.208.682l.108.054a9 9 0 0 0 6.086.71l3.114-.732a48.524 48.524 0 0 1-.005-10.499l-3.11.732a9 9 0 0 1-6.085-.711l-.108-.054a9 9 0 0 0-6.208-.682L3 4.5M3 15V4.5" />
+                                                </svg>
+                                                <span class="ml-1">Flag</span>
+                                            </a>
+                                        @endif
+                                    </td>
+                                </tr>
+                            @endforeach
                             </tbody>
                         </table>
                     </div>

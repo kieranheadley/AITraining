@@ -35,14 +35,14 @@ class ProcessStage1Job implements ShouldQueue
             'api-key' => config('services.serp.key'),
         ])->get(config('services.serp.url').'/keywords/'.$this->website->serp_id.'/desktop');
 
-        $rankings = collect($response->json());
+        $rankings = collect($response->json()['data']);
         $rankings = $rankings->where('current_position', '<', 10);
 
         foreach ($this->website->keywords as $keyword) {
             if ($rankings->where('keyword.keyword', $keyword->keyword)->count() > 0) {
                 $ranking = $rankings->where('keyword.keyword', $keyword->keyword)->first();
-                $keyword->assigned_page = $ranking->ranking_url;
-                $keyword->selection_reason = 'Ranking Position '.$ranking->current_position;
+                $keyword->assigned_page = str_replace(rtrim($this->website->website_url, '/'), '', $ranking['ranking_url']);
+                $keyword->selection_reason = 'Ranking Position '.$ranking['current_position'];
                 $keyword->save();
             }
         }

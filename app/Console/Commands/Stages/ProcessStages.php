@@ -8,6 +8,7 @@ use App\Jobs\Stages\ProcessStage3Job;
 use App\Jobs\Stages\ProcessStage4Job;
 use App\Jobs\Stages\ProcessStage5Job;
 use App\Jobs\Stages\ProcessStage6Job;
+use App\Jobs\Stages\ProcessStage7Job;
 use App\Models\Websites;
 use Illuminate\Console\Command;
 
@@ -21,7 +22,7 @@ class ProcessStages extends Command
     {
         $subQuery = Websites::selectRaw('MIN(id) as id')
             ->where('process_stage', '>', 0)
-            ->where('process_stage', '<>', 7)
+            ->where('process_stage', '<>', 8)
             ->where('processing', '=', 0)
             ->groupBy('process_stage');
 
@@ -41,6 +42,8 @@ class ProcessStages extends Command
                 ProcessStage5Job::dispatch($website);
             } elseif ($website->process_stage == 6) {
                 ProcessStage6Job::dispatch($website);
+            } elseif ($website->process_stage == 7) {
+                ProcessStage7Job::dispatch($website);
             }
         }
     }

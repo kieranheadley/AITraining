@@ -3,6 +3,7 @@
 namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\Relations\HasOne;
 use Illuminate\Database\Eloquent\SoftDeletes;
 
 class Keywords extends Model
@@ -28,5 +29,10 @@ class Keywords extends Model
         return [
             'embedding_results' => 'array',
         ];
+    }
+
+    public function website(): HasOne
+    {
+        return $this->hasOne(Websites::class, 'id', 'website_id');
     }
 }
