@@ -10,7 +10,7 @@ class WebsiteController extends Controller
 {
     public function index()
     {
-        $websites = Websites::get();
+        $websites = Websites::orderBy('process_stage', 'desc')->get();
 
         return view('websites.index', compact('websites'));
     }
