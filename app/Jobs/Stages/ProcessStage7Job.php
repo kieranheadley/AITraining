@@ -27,7 +27,7 @@ class ProcessStage7Job implements ShouldQueue
     {
         // Skip stage temporarily
         return;
-        
+
 //        $this->website->processing = 1;
 //        $this->website->save();
 //
