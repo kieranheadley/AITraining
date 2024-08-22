@@ -24,8 +24,8 @@ class ProcessStage6Job implements ShouldQueue
 
     public function handle(OpenAIService $openai): void
     {
-//        $this->website->processing = 1;
-//        $this->website->save();
+        $this->website->processing = 1;
+        $this->website->save();
 
         $crawl = collect($this->website->getCrawledPagesData()->unique('url'));
 
