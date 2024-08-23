@@ -38,7 +38,7 @@ class OpenAIService
             );
         }
         dump($string);
-        dump([
+        dd([
             'model' => 'gpt-4o',
             'messages' => [
                 [
