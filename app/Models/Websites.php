@@ -14,6 +14,7 @@ class Websites extends Model
 
     protected $fillable = [
         'website_url',
+        'primary_location',
         'crawl_location',
         'serp_id',
         'process_stage',

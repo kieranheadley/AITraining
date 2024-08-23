@@ -37,7 +37,7 @@ class ProcessStage5Job implements ShouldQueue
                 $pages[] = $crawl->where('path', $page['url'])->first();
             }
 
-            $response = $openai->selectPageFromEmbeddings($keyword, $pages);
+            $response = $openai->selectPageFromEmbeddings($keyword, $pages, $this->website);
 
             if ($response !== 'error') {
                 $response = explode(' - ', $response);

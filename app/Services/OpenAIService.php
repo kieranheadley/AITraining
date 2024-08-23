@@ -20,16 +20,18 @@ class OpenAIService
         return $response->embeddings[0]->embedding ?? [];
     }
 
-    public function selectPageFromEmbeddings($keyword, $pages): string
+    public function selectPageFromEmbeddings($keyword, $pages, $website): string
     {
-        $string = 'Keyword: '.$keyword->keyword."\n\n";
+        $string = 'Primary Location: '.$website->primary_location ?? ''."\n\n";
+        $string .= 'Keyword: '.$keyword->keyword."\n\n";
+
         foreach ($pages as $page) {
             $string .= 'Page URL: '.$page->url."\nPage Title: ".$page->title."\nMeta Description: ".$page->meta_desc."\nHeadings: ".implode(', ', str_replace('\n', '', $page->h1_headings)).', '.implode(', ', str_replace('\n', '', $page->h2_headings))."\n\n";
         }
 
         $client = OpenAI::client(config('services.openai.key'));
         $response = $client->chat()->create([
-            'model' => 'gpt-4o-mini',
+            'model' => 'gpt-4o',
             'messages' => [
                 [
                     'role' => 'system',
@@ -50,7 +52,7 @@ class OpenAIService
                     ],
                 ],
             ],
-            'temperature' => 0.7,
+            'temperature' => 1,
             'max_tokens' => 2048,
             'top_p' => 1,
             'frequency_penalty' => 0,
