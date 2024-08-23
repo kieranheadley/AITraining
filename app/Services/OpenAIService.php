@@ -37,6 +37,25 @@ class OpenAIService
                 ))
             );
         }
+        dump($string);
+        dump([
+            'model' => 'gpt-4o',
+            'messages' => [
+                [
+                    'role' => 'system',
+                    'content' => 'Role: You are an expert SEO consultant tasked with identifying the most suitable page for optimising a given keyword based on SEO best practices. Task Overview: You will receive key details for up to five pages on the website most relevant to the supplied keyword. This information includes the page URL, title, meta description, and headings. Your task is to determine whether the keyword is best optimised on an existing page or if a new page is necessary. If a primary location is provided, ensure it is prioritised in your decision. Evaluate the suitability of each page using the following criteria: Content Relevance: Ensure the page content closely matches the keyword. Location Relevance: - If the keyword contains the supplied primary location then it should be reviewed without the location being taken into consideration. (e.g., primary location = Leicester, the keyword "Kitchen Fitting Leicester" would be assigned to /kitchen-fitting) - Optimise keywords containing the primary location on national pages (e.g., /, /service, /product). Ignore location when deciding, focusing only on the keyword. - Optimise keywords with other locations on location-specific pages (e.g., /{location} or /{product}-{location}). - For multiple locations, treat them as related if geographically close and under 100,000 population. Otherwise, recommend separate pages. Keyword Intent: Match the intent (informational, transactional, or mixed) with the type of page. Use broad transactional keywords on the homepage; suggest blog posts for informational keywords. “Near Me” Keywords: Always recommend creating a new page for “near me” or similar variations. Generic Pages: Never optimise keywords on generic pages like “About Us”, "Terms & Conditions" or “Contact Us”. Response: Please respond using the following format: - Page URL or “new page” if none of the supplied pages are suitable. - Reason for your decision: Provide a brief explanation, separated by a hyphen, like the below. [page_url|new page] - Reason Example Response: https://website.co.uk - This page is chosen because the content is highly relevant, and the keyword intent aligns with the page type.',
+                ],
+                [
+                    'role' => 'user',
+                    'content' => $string,
+                ],
+            ],
+            'temperature' => 1,
+            'max_tokens' => 2048,
+            'top_p' => 1,
+            'frequency_penalty' => 0,
+            'presence_penalty' => 0,
+        ]);
 
         $client = OpenAI::client(config('services.openai.key'));
         $response = $client->chat()->create([
@@ -57,6 +76,8 @@ class OpenAIService
             'frequency_penalty' => 0,
             'presence_penalty' => 0,
         ]);
+
+        dd($response, $response->choices);
 
         if (isset($response->choices) && !empty($response->choices)) {
             return $response->choices[0]->message->content;
