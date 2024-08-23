@@ -43,6 +43,8 @@ class ProcessStage1Job implements ShouldQueue
                 $ranking = $rankings->where('keyword.keyword', $keyword->keyword)->first();
                 $keyword->assigned_page = str_replace(rtrim($this->website->website_url, '/'), '', $ranking['ranking_url']);
                 $keyword->selection_reason = 'Ranking Position '.$ranking['current_position'];
+                $keyword->selected = 0;
+                $keyword->new_page = 0;
                 $keyword->save();
             }
         }
