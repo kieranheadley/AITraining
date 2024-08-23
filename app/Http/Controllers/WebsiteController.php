@@ -26,6 +26,8 @@ class WebsiteController extends Controller
         return view('websites.show', compact('website', 'keywordData', 'crawl'));
     }
 
+
+
     public function processAssignment($id)
     {
         $website = Websites::find($id);

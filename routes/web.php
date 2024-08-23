@@ -2,6 +2,7 @@
 
 use App\Http\Controllers\KeywordController;
 use App\Http\Controllers\LocalKeywordController;
+use App\Http\Controllers\PromptController;
 use App\Http\Controllers\WebsiteController;
 use Illuminate\Support\Facades\Route;
 
@@ -19,3 +20,5 @@ Route::get('/local-keywords/{keyword}/{decision}', [LocalKeywordController::clas
 Route::get('/keywords/flagged', [KeywordController::class, 'getFlaggedKeywords']);
 Route::post('/keyword/flag', [KeywordController::class, 'flagAssignment']);
 Route::get('/keyword/unflag/{id}', [KeywordController::class, 'unFlagAssignment']);
+
+Route::get('/prompt/show/{id}/{keyword_id}', [PromptController::class, 'showPrompt']);

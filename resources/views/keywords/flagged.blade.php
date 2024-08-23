@@ -20,6 +20,8 @@
                                 <th scope="col" class="px-3 py-3.5 text-left text-sm font-semibold text-gray-900 text-center">Assigned Page</th>
                                 <th scope="col" class="px-3 py-3.5 text-left text-sm font-semibold text-gray-900 text-center">Embedding Pages</th>
                                 <th scope="col" class="px-3 py-3.5 text-left text-sm font-semibold text-gray-900 text-center">Flagged Reason</th>
+                                <th scope="col" class="px-3 py-3.5 text-left text-sm font-semibold text-gray-900 text-center">Review</th>
+                                <th scope="col" class="px-3 py-3.5 text-left text-sm font-semibold text-gray-900 text-center">Review</th>
                             </tr>
                             </thead>
                             <tbody class="divide-y divide-gray-200 bg-white">
@@ -59,6 +61,16 @@
                                         </td>
                                         <td class="whitespace-nowrap py-4 pl-4 pr-3 text-sm font-medium text-gray-500 sm:pl-6 text-wrap max-w-md">
                                             {{ $keyword->assignment_flag_notes }}
+                                        </td>
+                                        <td class="whitespace-nowrap py-4 pl-4 pr-3 text-sm font-medium text-gray-500 sm:pl-6 text-wrap max-w-md text-center">
+                                            <a href="/prompt/show/1/{{ $keyword->id }}" class="inline-flex items-center px-3 py-2 bg-gray-100 hover:bg-gray-200 text-blue-600 text-sm font-medium rounded-md">
+                                                Embedding
+                                            </a>
+                                        </td>
+                                        <td class="whitespace-nowrap py-4 pl-4 pr-3 text-sm font-medium text-gray-500 sm:pl-6 text-wrap max-w-md text-center">
+                                            <a href="/prompt/show/2/{{ $keyword->id }}" class="inline-flex items-center px-3 py-2 bg-gray-100 hover:bg-gray-200 text-blue-600 text-sm font-medium rounded-md">
+                                                Keyword Section
+                                            </a>
                                         </td>
                                     </tr>
                                 @endforeach
