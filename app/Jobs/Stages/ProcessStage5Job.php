@@ -27,8 +27,6 @@ class ProcessStage5Job implements ShouldQueue
         $this->website->processing = 1;
         $this->website->save();
 
-        dd('here');
-
         $keywords = $this->website->keywords->whereNull('assigned_page')->whereNotNull('embedding_results');
 
         $crawl = collect($this->website->getCrawledPagesData()->unique('url'));
