@@ -54,6 +54,7 @@ class OpenAIService
         ]);
 
         if (!empty($response->choices)) {
+            Logs::create(['log' => $response->choices[0]->message->content]);
             return $response->choices[0]->message->content;
         } else {
             return 'error';
@@ -84,21 +85,11 @@ class OpenAIService
             'messages' => [
                 [
                     'role' => 'system',
-                    'content' => [
-                        [
-                            'type' => 'text',
-                            'text' => 'You are an expert SEO consultant. Your task is to review the supplied keywords and select a maximum of 3 keywords for the page. Each keyword is provided with additional data in the format (Search Volume: 123, Difficulty: 10). You will also receive information about the page, including its URL, page title, meta description, and headings.\n\nWhen selecting keywords, consider the following factors in order of priority:\n\n1. Search Volume: Keywords with higher search volumes should be prioritized as they have a greater potential for attracting traffic.\n2. Difficulty: Keywords with lower difficulty scores are preferred to increase the likelihood of ranking successfully.\n3. Transactional Relevancy: While important, this factor should be considered after search volume and difficulty. Evaluate how relevant each keyword is to the transactional intent of the page, based on the provided page information.\n\nAfter reviewing the keywords, return only the 3 selected keywords as a JSON array in the format: ["keyword 1", "keyword 2", "keyword 3"].',
-                        ],
-                    ],
+                    'content' => 'You are an expert SEO consultant. Your task is to review the supplied keywords and select a maximum of 3 keywords for the page. Each keyword is provided with additional data in the format (Search Volume: 123, Difficulty: 10). You will also receive information about the page, including its URL, page title, meta description, and headings.\n\nWhen selecting keywords, consider the following factors in order of priority:\n\n1. Search Volume: Keywords with higher search volumes should be prioritized as they have a greater potential for attracting traffic.\n2. Difficulty: Keywords with lower difficulty scores are preferred to increase the likelihood of ranking successfully.\n3. Transactional Relevancy: While important, this factor should be considered after search volume and difficulty. Evaluate how relevant each keyword is to the transactional intent of the page, based on the provided page information.\n\nAfter reviewing the keywords, return only the 3 selected keywords as a JSON array in the format: ["keyword 1", "keyword 2", "keyword 3"].',
                 ],
                 [
                     'role' => 'user',
-                    'content' => [
-                        [
-                            'type' => 'text',
-                            'text' => $string,
-                        ],
-                    ],
+                    'content' => $string,
                 ],
             ],
             'temperature' => 0.75,
