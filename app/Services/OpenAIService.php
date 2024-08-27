@@ -27,16 +27,10 @@ class OpenAIService
         $string .= 'Keyword: ' . $keyword->keyword . "\n\n";
 
         foreach ($pages as $page) {
-            $string .= sprintf(
-                "Page URL: %s\nPage Title: %s\nMeta Description: %s\nHeadings: %s\n\n",
-                $page->url,
-                $page->title,
-                $page->meta_desc,
-                implode(', ', array_merge(
-                    str_replace('\n', '', $page->h1_headings),
-                    str_replace('\n', '', $page->h2_headings)
-                ))
-            );
+            $string .= "Page URL: ".$page->url."\n";
+            $string .= "Page Title: ".$page->title."\n";
+            $string .= "Meta Description: ".$page->meta_desc."\n";
+            $string .= "Headings: ".implode(",", $page->h1_headings).",".implode(",", $page->h2_headings);
         }
 
         Logs::create(['log' => json_encode([
