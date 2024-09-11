@@ -13,6 +13,7 @@ class Keywords extends Model
     protected $fillable = [
         'website_id',
         'keyword',
+        'ranking_sites',
         'hike_assigned_page',
         'assigned_page',
         'embedding_results',
@@ -28,6 +29,7 @@ class Keywords extends Model
     {
         return [
             'embedding_results' => 'array',
+            'ranking_sites' => 'array',
         ];
     }
 

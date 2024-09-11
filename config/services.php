@@ -49,4 +49,8 @@ return [
         'index_host' => env('PINECONE_INDEX_HOST'),
     ],
 
+    'dataforseo' => [
+        'username' => env('DFSEO_LOGIN'),
+        'password' => env('DFSEO_PASSWORD'),
+    ],
 ];

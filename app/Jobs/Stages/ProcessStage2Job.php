@@ -2,6 +2,7 @@
 
 namespace App\Jobs\Stages;
 
+use App\Jobs\SERP\GetRankingsJob;
 use App\Models\KeywordIndex;
 use App\Models\Websites;
 use App\Services\OpenAIService;
@@ -28,15 +29,19 @@ class ProcessStage2Job implements ShouldQueue
         $this->website->processing = 1;
         $this->website->save();
 
-        $keywords = $this->website->keywords->pluck('keyword')->toArray();
+        $keywords = $this->website->keywords;
 
-        $locations = $openai->getLocationInKeyword($keywords);
+        foreach ($keywords as $keyword) {
+            GetRankingsJob::dispatch($keyword);
+        }
+
+        $locations = $openai->getLocationInKeyword($keywords->pluck('keyword')->toArray());
         $locations = current(json_decode($locations));
 
         KeywordIndex::whereIn('keyword', $locations)
             ->update(['location_in_keyword' => 1]);
 
-        $intents = $openai->getSearchIntent($keywords);
+        $intents = $openai->getSearchIntent($keywords->pluck('keyword')->toArray());
         $intents = current(json_decode($intents));
 
         foreach ($intents as $intent) {
