@@ -40,18 +40,18 @@ class ProcessStage5Job implements ShouldQueue
             $response = $openai->selectPageFromEmbeddings($keyword, $pages, $this->website);
 
             if ($response !== 'error') {
-                $response = explode(' - ', $response);
+                $response = $response->assignment[0];
 
-                if ($response[0] === 'new page') {
+                if ($response->assigned_page === 'new page') {
                     $keyword->assigned_page = null;
                     $keyword->new_page = 1;
                 }else{
-                    $parsedUrl = parse_url($response[0]);
+                    $parsedUrl = parse_url($response->assigned_page);
                     $keyword->assigned_page = $parsedUrl['path'] ?? '/';
                     $keyword->new_page = 0;
                 }
 
-                $keyword->selection_reason = $response[1];
+                $keyword->selection_reason = $response->reason;
                 $keyword->save();
             }
         }

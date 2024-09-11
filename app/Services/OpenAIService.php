@@ -21,7 +21,7 @@ class OpenAIService
         return $response->embeddings[0]->embedding ?? [];
     }
 
-    public function selectPageFromEmbeddings($keyword, $pages, $website): string
+    public function selectPageFromEmbeddings($keyword, $pages, $website): object|string
     {
         $string = 'Primary Location: ' . ($website->primary_location ?? '') . "\n\n";
         $string .= 'Keyword: ' . $keyword->keyword . "\n\n";
@@ -41,11 +41,11 @@ class OpenAIService
 
         $client = OpenAI::client(config('services.openai.key'));
         $response = $client->chat()->create([
-            'model' => 'gpt-4o',
+            'model' => 'gpt-4o-mini',
             'messages' => [
                 [
                     'role' => 'system',
-                    'content' => 'Role: You are an expert SEO consultant tasked with identifying the most suitable page for optimising a given keyword based on SEO best practices. \n\nTask Overview: You will receive key details for up to five pages on the website most relevant to the supplied keyword. This information includes the page URL, title, meta description, and headings. Your task is to determine whether the keyword is best optimised on an existing page or if a new page is necessary. If a primary location is provided, ensure it is prioritised in your decision. You will also be provided a list of the top 10 websites currently showing in Google for that query, use this to help determine the type of page which Google prioritises for the keyword.\n\nEvaluate the suitability of each page using the following criteria: \n\nContent Relevance: Ensure the page content closely matches the keyword. \n\nLocation Relevance: \n- If the keyword contains the supplied primary location then it should be reviewed without the location being taken into consideration. (e.g. primary location = Leicester, the keyword \"Kitchen Fitting Leicester\" would be assigned to /kitchen-fitting) \n- Optimise keywords containing the primary location on national pages (e.g., /, /service, /product). Ignore location when deciding, focusing only on the keyword. \n- Optimise keywords with other locations on location-specific pages (e.g., /{location} or /{product}-{location}). \n- For multiple locations, treat them as related if geographically close and under 100,000 population. Otherwise, recommend separate pages. \n\nKeyword Intent: Match the intent (informational, transactional, or mixed) with the type of page. Use broad transactional keywords on the homepage; suggest blog posts for informational keywords. You can also use the supplied list of ranking websites to just the correct intent based on how Google ranks websites.\n\n“Near Me” Keywords: Always recommend creating a new page for “near me” or similar variations. \n\nGeneric Pages: Never optimise keywords on generic pages like “About Us”, \"Terms & Conditions\" or “Contact Us”. \n\nResponse: Please respond using the following format: \n- Page URL or “new page” if none of the supplied pages are suitable. \n- Reason for your decision: Provide a brief explanation, separated by a hyphen, like the below. [page_url|new page] - Reason \n\nExample Response: https://website.co.uk - This page is chosen because the content is highly relevant, and the keyword intent aligns with the page type.',
+                    'content' => 'Role: You are an expert SEO consultant tasked with identifying the most suitable page for optimising a given keyword based on SEO best practices. \n\nTask Overview: You will receive key details for up to five pages on the website most relevant to the supplied keyword. This information includes the page URL, title, meta description, and headings. Your task is to determine whether the keyword is best optimised on an existing page or if a new page is necessary. If a primary location is provided, ensure it is prioritised in your decision. You will also be provided a list of the top 10 websites currently showing in Google for that query, use this to help determine the type of page which Google prioritises for the keyword.\n\nEvaluate the suitability of each page using the following criteria: \n\nContent Relevance: Ensure the page content closely matches the keyword. \n\nLocation Relevance: \n- If the keyword contains the supplied primary location then it should be reviewed without the location being taken into consideration. (e.g. primary location = Leicester, the keyword \"Kitchen Fitting Leicester\" would be assigned to /kitchen-fitting) \n- Optimise keywords containing the primary location on national pages (e.g., /, /service, /product). Ignore location when deciding, focusing only on the keyword. \n- Optimise keywords with other locations on location-specific pages (e.g., /{location} or /{product}-{location}). \n- For multiple locations, treat them as related if geographically close and under 100,000 population. Otherwise, recommend separate pages. \n\nKeyword Intent: Match the intent (informational, transactional, or mixed) with the type of page. Use broad transactional keywords on the homepage; suggest blog posts for informational keywords. You can also use the supplied list of ranking websites to just the correct intent based on how Google ranks websites.\n\n“Near Me” Keywords: Always recommend creating a new page for “near me” or similar variations. \n\nGeneric Pages: Never optimise keywords on generic pages like “About Us”, \"Terms & Conditions\" or “Contact Us”. \n\nResponse: Please respond in a JSON object format containing: \n ["assigned_page" => "Page URL or \'new page\' if none of the supplied pages are suitable.", "reason" => "Provide a brief explanation as to the reason the page has been chosen"] \n\nExample Response: ["assigned_page" => "https://website.co.uk", "reason" => "This page is chosen because the content is highly relevant, and the keyword intent aligns with the page type."]',
                 ],
                 [
                     'role' => 'user',
@@ -57,11 +57,41 @@ class OpenAIService
             'top_p' => 1,
             'frequency_penalty' => 0,
             'presence_penalty' => 0,
+            'response_format' => [
+                'type' => 'json_schema',
+                'json_schema' => [
+                    'name' => 'assignment',
+                    'strict' => true,
+                    'schema' => [
+                        'type' => 'object',
+                        'properties' => [
+                            'assignment' => [
+                                'type' => 'array',
+                                'items' => [
+                                    'type' => 'object',
+                                    'properties' => [
+                                        'assigned_page' => [
+                                            'type' => 'string',
+                                        ],
+                                        'reason' => [
+                                            'type' => 'string',
+                                        ],
+                                    ],
+                                    'required' => ["assigned_page", "reason"],
+                                    'additionalProperties' => false,
+                                ],
+                            ],
+                        ],
+                        'required' => ['assignment'],
+                        'additionalProperties' => false,
+                    ],
+                ],
+            ],
         ]);
 
         if (!empty($response->choices)) {
             Logs::create(['log' => $response->choices[0]->message->content]);
-            return $response->choices[0]->message->content;
+            return json_decode($response->choices[0]->message->content);
         } else {
             return 'error';
         }
