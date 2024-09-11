@@ -46,7 +46,8 @@ class ProcessStage5Job implements ShouldQueue
                     $keyword->assigned_page = null;
                     $keyword->new_page = 1;
                 }else{
-                    $keyword->assigned_page = parse_url($response[0])['path'];
+                    $parsedUrl = parse_url($response[0]);
+                    $keyword->assigned_page = $parsedUrl['path'] ?? '/';
                     $keyword->new_page = 0;
                 }
 
