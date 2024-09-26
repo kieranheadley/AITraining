@@ -36,7 +36,7 @@ class ProcessStage1Job implements ShouldQueue
         ])->get(config('services.serp.url').'/keywords/'.$this->website->serp_id.'/desktop');
 
         $rankings = collect($response->json()['data']);
-        $rankings = $rankings->where('current_position', '<', 10);
+        $rankings = $rankings->where('current_position', '<', 5);
 
         foreach ($this->website->keywords as $keyword) {
             if ($rankings->where('keyword.keyword', $keyword->keyword)->count() > 0) {

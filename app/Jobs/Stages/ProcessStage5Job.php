@@ -33,8 +33,11 @@ class ProcessStage5Job implements ShouldQueue
 
         foreach ($keywords as $keyword) {
             $pages = [];
+
             foreach ($keyword->embedding_results as $page) {
-                $pages[] = $crawl->where('path', $page['url'])->first();
+                if($crawl->where('path', $page['url'])->first()){
+                    $pages[] = $crawl->where('path', $page['url'])->first();
+                }
             }
 
             $response = $openai->selectPageFromEmbeddings($keyword, $pages, $this->website);
