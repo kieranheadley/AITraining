@@ -41,7 +41,7 @@ class OpenAIService
 
         $client = OpenAI::client(config('services.openai.key'));
         $response = $client->chat()->create([
-            'model' => 'gpt-4o-mini',
+            'model' => 'gpt-4o-2024-08-06',
             'messages' => [
                 [
                     'role' => 'system',
