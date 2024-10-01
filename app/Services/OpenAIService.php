@@ -99,6 +99,7 @@ class OpenAIService
 
     public function selectKeywordForExistingPage($keywords, $page): string
     {
+        // TODO: Ensure that near me keywords are not selected
         $string = 'Keywords: ';
 
         foreach ($keywords as $keyword) {
